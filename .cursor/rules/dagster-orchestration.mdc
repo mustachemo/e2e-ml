@@ -1,0 +1,135 @@
+# Dagster Orchestration Guide.mdc
+
+## Purpose
+
+Define how Dagster orchestrates the end-to-end ML lifecycle in this repository: data ingest (DVC + MinIO), preprocessing, distributed training (Ray), experiment tracking and registry (MLflow + Postgres + MinIO), model serving (Ray Serve behind NGINX), and observability (Prometheus, Grafana, Jaeger).
+
+## Why Dagster
+
+- Software-defined assets with strong typing and lineage
+- Schedules and sensors for data-driven triggers (DVC/MinIO)
+- Resource management for centralized credentials (MinIO, MLflow, Ray)
+- First-class observability and testing support
+
+## High-Level DAG
+
+```mermaid
+flowchart LR
+  A[DVC Ingest] --> B[Preprocess]
+  B --> C[Train on Ray]
+  C --> D[Register in MLflow]
+  D --> E[Deploy via Ray Serve]
+  E --> F[Monitor: Prometheus/Grafana/Jaeger]
+```
+
+## Assets and Ops
+
+- Assets: datasets (raw, interim, processed), features, models, deployments
+- Ops: side-effecting steps (e.g., deploy, notify, cache warmup)
+
+## Resources
+
+- `minio_resource`: S3 client for DVC/MinIO operations
+- `mlflow_resource`: MLflow client + tracking URI
+- `ray_resource`: Ray cluster connection (address=auto)
+- `prometheus_resource`: push custom metrics if needed
+
+## Config Strategy
+
+- Hydra/OmegaConf config files in `configs/` drive parameters
+- Dagster `EnvVar` for sensitive values (e.g., S3 creds)
+- Use Dagster `Definitions(resources=..., assets=..., schedules=...)`
+
+## Minimal Example
+
+```python
+# src/orchestration/defs.py
+from dagster import Definitions, EnvVar
+from src.orchestration.resources import get_resources
+from src.orchestration.jobs import e2e_ml_lifecycle
+from src.orchestration.schedules import all_schedules
+from src.orchestration.sensors import all_sensors
+
+defs = Definitions(
+    jobs=[e2e_ml_lifecycle],
+    resources=get_resources(
+        s3_endpoint=EnvVar("MLFLOW_S3_ENDPOINT_URL"),
+        s3_key=EnvVar("AWS_ACCESS_KEY_ID"),
+        s3_secret=EnvVar("AWS_SECRET_ACCESS_KEY"),
+        mlflow_uri=EnvVar("MLFLOW_TRACKING_URI"),
+        ray_address=EnvVar("RAY_HEAD_SERVICE_HOST"),
+    ),
+    schedules=all_schedules,
+    sensors=all_sensors,
+)
+```
+
+```python
+# src/orchestration/jobs.py
+from dagster import job
+from src.orchestration.ops import dvc_ingest, preprocess, train_distributed, register_model, deploy
+
+@job
+def e2e_ml_lifecycle():
+    deploy(register_model(train_distributed(preprocess(dvc_ingest()))))
+```
+
+```python
+# src/orchestration/ops.py
+from pathlib import Path
+from typing import Dict, Any
+from dagster import op
+import mlflow, ray
+
+@op
+def dvc_ingest() -> Path:
+    # shell out to `dvc pull` / `dvc repro` as needed
+    return Path("data/processed")
+
+@op
+def preprocess(data_dir: Path) -> Path:
+    # run preprocessing scripts producing processed dataset
+    return data_dir
+
+@op
+def train_distributed(data_dir: Path) -> Dict[str, Any]:
+    mlflow.set_tracking_uri("http://mlflow:5000")
+    ray.init(address="auto")
+    with mlflow.start_run():
+        mlflow.log_param("data_dir", str(data_dir))
+        # train with Ray Train or your trainer
+        mlflow.log_metric("val_accuracy", 0.9)
+        return {"run_id": mlflow.active_run().info.run_id}
+
+@op
+def register_model(train_out: Dict[str, Any]) -> str:
+    run_id = train_out["run_id"]
+    mlflow.register_model(f"runs:/{run_id}/model", "image_classifier")
+    return "image_classifier"
+
+@op
+def deploy(model_name: str) -> str:
+    # trigger Ray Serve deploy (HTTP call or ray job submit)
+    return f"deployed:{model_name}"
+```
+
+## Scheduling & Sensors
+
+- Schedules: nightly training, hourly evaluation, periodic data validation
+- Sensors: trigger on new MinIO object (via webhook or polling), new DVC tag, model registry events
+
+## Testing
+
+- Unit-test ops with Dagster `build_op_context`
+- Use ephemeral resources (temp MinIO bucket, local MLflow) in CI
+
+## Observability
+
+- Emit materializations and metadata for assets
+- Expose metrics for Prometheus; wire dashboards in Grafana
+- Enable tracing decorators for long-running ops
+
+## Deployment
+
+- Run `dagster dev` (local) or `dagster-daemon` + gRPC server in docker-compose
+- Expose Dagster UI for orchestration visibility

@@ -252,19 +252,20 @@ pytest tests/ --cov=src --cov-report=html
 
 ## 📚 Documentation
 
-Detailed documentation is available in the `.cursor/rules/` directory:
+ Detailed documentation is available in the `.cursor/rules/` directory:
 
-- [Architecture Overview](.cursor/rules/architecture-overview.md)
-- [Infrastructure & Containerization](.cursor/rules/infrastructure-containerization.md)
-- [Data Pipeline & Versioning](.cursor/rules/data-pipeline-versioning.md)
-- [ML Training & Experimentation](.cursor/rules/ml-training-experimentation.md)
-- [Serving, Monitoring & Observability](.cursor/rules/serving-monitoring-observability.md)
-- [Development Environment](.cursor/rules/development-environment.md)
-- [Project Standards](.cursor/rules/project-standards.md)
+- [Architecture Overview](.cursor/rules/architecture-overview.mdc)
+- [Infrastructure & Containerization](.cursor/rules/infrastructure-containerization.mdc)
+- [Data Pipeline & Versioning](.cursor/rules/data-pipeline-versioning.mdc)
+- [ML Training & Experimentation](.cursor/rules/ml-training-experimentation.mdc)
+- [Serving, Monitoring & Observability](.cursor/rules/serving-monitoring-observability.mdc)
+- [Development Environment](.cursor/rules/development-environment.mdc)
+- [Project Standards](.cursor/rules/project-standards.mdc)
+ - [Dagster Orchestration](.cursor/rules/dagster-orchestration.mdc)
 
 ## 🤝 Contributing
 
-1. Follow the coding standards defined in `.cursor/rules/project-standards.md`
+ 1. Follow the coding standards defined in `.cursor/rules/project-standards.mdc`
 2. Write comprehensive tests for new features
 3. Update documentation for significant changes
 4. Use conventional commit messages
