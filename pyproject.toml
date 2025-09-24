@@ -1,0 +1,58 @@
+[project]
+name = "e2e-ml"
+version = "0.1.0"
+description = "DINOv3 multi-label training scaffold with HF datasets and MLflow"
+authors = [
+  { name = "Your Name", email = "you@example.com" }
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+keywords = ["dinov3", "vision", "multilabel", "huggingface", "mlflow"]
+
+# Runtime dependencies
+dependencies = [
+  "torch>=2.3",
+  "torchvision>=0.18",
+  "transformers>=4.56",
+  "datasets>=2.21",
+  "huggingface-hub>=0.24",
+  "accelerate>=0.34",
+  "numpy>=1.26",
+  "pillow>=10.3",
+  "scikit-learn>=1.5",
+  "loguru>=0.7",
+  "rich>=13.7",
+  "typer>=0.12",
+  "mlflow>=2.15",
+  "dagster>=1.7",
+  "dagster-webserver>=1.7",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "pytest-cov>=5.0",
+  "pytest-mock>=3.14",
+  "ruff>=0.6",
+  "mypy>=1.11",
+]
+
+[project.scripts]
+e2e-train = "src.e2e_ml.cli:app"
+
+[build-system]
+requires = ["setuptools>=69", "wheel", "uv>=0.4"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "I", "N", "UP", "B", "C4"]
+ignore = ["E203"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = ["src"]
+
+[tool.uv]
+index-url = "https://pypi.org/simple"
