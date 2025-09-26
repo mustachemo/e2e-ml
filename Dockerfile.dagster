@@ -1,0 +1,28 @@
+# syntax=docker/dockerfile:1.7-labs
+
+FROM python:3.11-slim
+ENV PIP_NO_CACHE_DIR=1 \
+    UV_SYSTEM_PYTHON=1 \
+    PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git build-essential && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir uv
+
+WORKDIR /app
+COPY pyproject.toml ./
+RUN uv pip install --system -e ".[dev]"
+
+COPY src ./src
+
+RUN useradd -m -u 10002 daguser
+USER daguser
+
+EXPOSE 3000
+
+# Dagster webserver expects a module with Definitions; we use src.training.defs:get_defs
+ENV DAGSTER_HOME=/home/daguser/.dagster
+RUN mkdir -p $DAGSTER_HOME
+
+ENTRYPOINT ["dagster-webserver", "-m", "src.training.defs", "-p", "3000"]
