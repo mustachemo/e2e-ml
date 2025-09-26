@@ -7,10 +7,10 @@ services:
   ml-pipeline:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: e2e-ml-pipeline
     volumes:
-      - ./output:/app/output
+      - ./output-clean:/app/output
       - ./data:/app/data
       - ./configs:/app/configs
     environment:
@@ -20,24 +20,18 @@ services:
     networks:
       - ml-network
     command:
-      [
-        "python",
-        "main.py",
-        "mode=train",
-        "training.epochs=1",
-        "data.batch_size=32",
-      ]
+      ["python", "main.py", "mode=train", "data.batch_size=32", "mlflow=docker"]
 
   # =============================== MLflow UI ================================ #
   mlflow-ui:
     build:
       context: .
-      dockerfile: Dockerfile.mlflow
+      dockerfile: docker/Dockerfile.mlflow
     container_name: e2e-ml-mlflow-ui
     ports:
       - "5000:5000"
     volumes:
-      - ./output:/app/mlruns
+      - ./output-clean/mlruns:/app/mlruns
     environment:
       - MLFLOW_BACKEND_STORE_URI=file:/app/mlruns
     networks:

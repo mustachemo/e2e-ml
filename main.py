@@ -255,10 +255,10 @@ def main(config: DictConfig) -> None:
     config.paths.output_dir = str(timestamped_output_dir)
 
     # * Create subdirectories
-    (config.paths.output_dir / "models").mkdir(exist_ok=True)
-    (config.paths.output_dir / "logs").mkdir(exist_ok=True)
-    (config.paths.output_dir / "mlruns").mkdir(exist_ok=True)
-    (config.paths.output_dir / "plots").mkdir(exist_ok=True)
+    (timestamped_output_dir / "models").mkdir(exist_ok=True)
+    (timestamped_output_dir / "logs").mkdir(exist_ok=True)
+    (timestamped_output_dir / "mlruns").mkdir(exist_ok=True)
+    (timestamped_output_dir / "plots").mkdir(exist_ok=True)
 
     # * Set up MLflow
     setup_mlflow_logging(config.mlflow)
