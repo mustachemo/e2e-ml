@@ -1,0 +1,54 @@
+# ==============================================================================
+# Docker Compose for E2E ML Pipeline
+# ==============================================================================
+
+services:
+  # =============================== ML Pipeline ============================== #
+  ml-pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: e2e-ml-pipeline
+    volumes:
+      - ./output:/app/output
+      - ./data:/app/data
+      - ./configs:/app/configs
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow-ui:5000
+    depends_on:
+      - mlflow-ui
+    networks:
+      - ml-network
+    command:
+      [
+        "python",
+        "main.py",
+        "mode=train",
+        "training.epochs=1",
+        "data.batch_size=32",
+      ]
+
+  # =============================== MLflow UI ================================ #
+  mlflow-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    container_name: e2e-ml-mlflow-ui
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./output:/app/mlruns
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=file:/app/mlruns
+    networks:
+      - ml-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  ml-network:
+    driver: bridge

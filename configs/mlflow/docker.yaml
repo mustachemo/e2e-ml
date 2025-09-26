@@ -1,0 +1,43 @@
+# @package mlflow
+
+# =============================== MLflow Configuration ===================== #
+experiment_name: "e2e-ml-cifar10"
+run_name: "simple-cnn-run"
+tracking_uri: "http://mlflow-ui:5000"
+
+# =============================== Logging ================================== #
+log_artifacts: true
+log_models: true
+log_metrics: true
+log_params: true
+
+# =============================== Model Registry ========================== #
+model_registry:
+  enabled: true
+  model_name: "cifar10-classifier"
+  stage: "None" # None, Staging, Production, Archived
+
+# =============================== Artifacts =============================== #
+artifacts:
+  models_dir: "${paths.model_dir}"
+  plots_dir: "${paths.output_dir}/plots"
+  logs_dir: "${paths.log_dir}"
+
+# =============================== Metrics to Track ======================== #
+metrics:
+  - "train_loss"
+  - "val_loss"
+  - "train_accuracy"
+  - "val_accuracy"
+  - "learning_rate"
+  - "epoch"
+
+# =============================== Parameters to Track ===================== #
+params:
+  - "model.input_channels"
+  - "model.num_classes"
+  - "model.dropout_rate"
+  - "training.epochs"
+  - "training.learning_rate"
+  - "training.weight_decay"
+  - "data.batch_size"

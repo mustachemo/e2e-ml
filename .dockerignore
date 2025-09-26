@@ -1,0 +1,80 @@
+# ==============================================================================
+# Docker Ignore File for E2E ML Pipeline
+# ==============================================================================
+
+# * Git
+.git
+.gitignore
+
+# * Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# * Virtual environments
+.venv
+venv/
+ENV/
+env/
+.venv/
+
+# * Output directories
+output/
+outputs/
+data/
+logs/
+mlruns/
+models/
+plots/
+
+# * IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# * OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# * Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# * Scripts
+scripts/
+
+# * Documentation
+*.md
+docs/
+
+# * Jupyter
+.ipynb_checkpoints/
+
+# * Temporary files
+*.tmp
+*.temp

@@ -5,6 +5,7 @@ This script uses Hydra configuration management to orchestrate the complete
 machine learning pipeline including data loading, model training, and evaluation.
 """
 
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -261,6 +262,11 @@ def main(config: DictConfig) -> None:
 
     # * Set up MLflow
     setup_mlflow_logging(config.mlflow)
+
+    # * Log Docker environment info
+    if os.getenv("DOCKER_CONTAINER"):
+        logger.info("Running in Docker container")
+        logger.info(f"MLflow tracking URI: {config.mlflow.tracking_uri}")
 
     # * Create console for output
     console = Console()

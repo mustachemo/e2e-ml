@@ -1,0 +1,31 @@
+# ==============================================================================
+# Dockerfile for MLflow UI Server
+# ==============================================================================
+
+FROM python:3.11-slim
+
+# * Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# * Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# * Install MLflow
+RUN pip install mlflow==3.4.0
+
+# * Create app directory
+WORKDIR /app
+
+# * Create mlruns directory
+RUN mkdir -p /app/mlruns
+
+# * Expose MLflow UI port
+EXPOSE 5000
+
+# * Set default command to start MLflow UI
+CMD ["mlflow", "ui", "--host", "0.0.0.0", "--port", "5000", "--backend-store-uri", "file:/app/mlruns"]

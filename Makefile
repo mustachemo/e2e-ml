@@ -55,6 +55,45 @@ clean:
 	find . -type f -name ".coverage" -delete 2>/dev/null || true
 	rm -rf build/ dist/ *.egg-info/ 2>/dev/null || true
 
+# =============================== Docker ==================================== #
+docker-build:
+	@echo "Building Docker images..."
+	docker build -t e2e-ml-pipeline:latest .
+	docker build -f Dockerfile.mlflow -t e2e-ml-mlflow:latest .
+
+docker-run:
+	@echo "Running ML pipeline with Docker Compose..."
+	docker compose up --build
+
+docker-run-mlflow:
+	@echo "Running only MLflow UI..."
+	docker compose up mlflow-ui
+
+docker-stop:
+	@echo "Stopping Docker services..."
+	docker compose down
+	@echo "Killing any processes using port 5000..."
+	@lsof -ti:5000 | xargs -r kill -9 2>/dev/null || true
+
+docker-clean:
+	@echo "Cleaning up Docker resources..."
+	docker compose down
+	docker rmi e2e-ml-pipeline:latest e2e-ml-mlflow:latest 2>/dev/null || true
+	docker volume prune -f
+	docker network prune -f
+
+docker-logs:
+	@echo "Showing Docker logs..."
+	docker compose logs -f
+
+docker-shell:
+	@echo "Accessing ML pipeline container shell..."
+	docker exec -it e2e-ml-pipeline bash
+
+docker-status:
+	@echo "Docker service status:"
+	docker compose ps
+
 # =============================== Help ======================================= #
 help:
 	@echo "Available commands:"
@@ -68,5 +107,13 @@ help:
 	@echo "  run-eval    - Run evaluation pipeline"
 	@echo "  run-full    - Run full pipeline (train + eval)"
 	@echo "  run-example - Run example with default config"
+	@echo "  docker-build - Build Docker images"
+	@echo "  docker-run  - Run ML pipeline with Docker Compose"
+	@echo "  docker-run-mlflow - Run only MLflow UI"
+	@echo "  docker-stop - Stop Docker services"
+	@echo "  docker-clean - Clean up Docker resources"
+	@echo "  docker-logs - Show Docker logs"
+	@echo "  docker-shell - Access container shell"
+	@echo "  docker-status - Show Docker service status"
 	@echo "  clean       - Clean up temporary files"
 	@echo "  help        - Show this help message"

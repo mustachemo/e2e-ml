@@ -1,0 +1,24 @@
+# @package _global_
+
+defaults:
+  - data: cifar10
+  - model: simple_cnn
+  - training: default
+  - mlflow: docker
+  - _self_
+
+# =============================== Application ================================ #
+app_name: "e2e-ml-workflow"
+mode: train # train, eval, full
+
+# =============================== Paths ===================================== #
+paths:
+  data_dir: "/app/data"
+  model_dir: "/app/output/models"
+  log_dir: "/app/output/logs"
+  output_dir: "/app/output"
+  mlruns_dir: "/app/output/mlruns"
+
+# =============================== Logging =================================== #
+log_level: "INFO"
+log_file: "${paths.log_dir}/mlflow.log"
