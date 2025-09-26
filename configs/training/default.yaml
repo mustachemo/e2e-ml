@@ -1,0 +1,43 @@
+# @package training
+
+# =============================== Training Parameters ====================== #
+epochs: 10
+learning_rate: 0.001
+weight_decay: 1e-4
+momentum: 0.9
+
+# =============================== Optimizer ================================ #
+optimizer:
+  _target_: torch.optim.Adam
+  lr: ${training.learning_rate}
+  weight_decay: ${training.weight_decay}
+
+# =============================== Scheduler ================================ #
+scheduler:
+  _target_: torch.optim.lr_scheduler.StepLR
+  step_size: 5
+  gamma: 0.1
+
+# =============================== Loss Function ============================ #
+loss_function:
+  _target_: torch.nn.CrossEntropyLoss
+
+# =============================== Early Stopping =========================== #
+early_stopping:
+  enabled: true
+  patience: 3
+  min_delta: 0.001
+  monitor: "val_loss"
+  mode: "min"
+
+# =============================== Checkpointing ============================ #
+checkpointing:
+  enabled: true
+  save_top_k: 3
+  monitor: "val_accuracy"
+  mode: "max"
+  save_last: true
+
+# =============================== Validation =============================== #
+val_check_interval: 1.0 # Validate every epoch
+log_every_n_steps: 50

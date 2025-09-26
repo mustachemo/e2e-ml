@@ -1,0 +1,12 @@
+# @package model
+
+_target_: src.models.resnet.ResNet18
+
+# =============================== Architecture ============================== #
+num_classes: 10
+pretrained: false
+
+# =============================== ResNet Configuration ===================== #
+block_type: "basic" # basic, bottleneck
+layers: [2, 2, 2, 2] # ResNet-18 configuration
+in_channels: 3

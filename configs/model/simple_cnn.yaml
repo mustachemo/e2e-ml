@@ -1,0 +1,29 @@
+# @package model
+
+_target_: src.models.simple_cnn.SimpleCNN
+
+# =============================== Architecture ============================== #
+input_channels: 3
+num_classes: 10
+dropout_rate: 0.2
+
+# =============================== Convolutional Layers ===================== #
+conv_layers:
+  - out_channels: 32
+    kernel_size: 3
+    padding: 1
+  - out_channels: 64
+    kernel_size: 3
+    padding: 1
+  - out_channels: 128
+    kernel_size: 3
+    padding: 1
+
+# =============================== Pooling ================================== #
+pool_size: 2
+pool_type: "max" # max, avg
+
+# =============================== Dense Layers ============================= #
+dense_layers:
+  - 512
+  - 256

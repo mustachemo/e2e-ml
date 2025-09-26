@@ -1,0 +1,33 @@
+# @package data
+
+_target_: src.data.mnist_dataset.MNISTDataModule
+
+# =============================== Dataset =================================== #
+dataset_name: "MNIST"
+data_dir: "${paths.data_dir}"
+download: true
+
+# =============================== Preprocessing ============================= #
+transform:
+  train:
+    - _target_: torchvision.transforms.ToTensor
+    - _target_: torchvision.transforms.Normalize
+      mean: [0.1307]
+      std: [0.3081]
+
+  val:
+    - _target_: torchvision.transforms.ToTensor
+    - _target_: torchvision.transforms.Normalize
+      mean: [0.1307]
+      std: [0.3081]
+
+# =============================== DataLoader =============================== #
+batch_size: 128
+num_workers: 4
+pin_memory: true
+shuffle_train: true
+
+# =============================== Split ===================================== #
+train_split: 0.8
+val_split: 0.1
+test_split: 0.1
