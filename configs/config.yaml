@@ -14,10 +14,10 @@ mode: train # train, eval, full
 # =============================== Paths ===================================== #
 paths:
   data_dir: "./data"
-  model_dir: "./outputs/models"
-  log_dir: "./outputs/logs"
-  output_dir: "./outputs"
-  mlruns_dir: "./outputs/mlruns"
+  model_dir: "./output/models"
+  log_dir: "./output/logs"
+  output_dir: "./output"
+  mlruns_dir: "./output/mlruns"
 
 # =============================== Logging =================================== #
 log_level: "INFO"

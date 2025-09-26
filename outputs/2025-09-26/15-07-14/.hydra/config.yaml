@@ -1,0 +1,130 @@
+data:
+  _target_: src.data.cifar10_dataset.CIFAR10DataModule
+  dataset_name: CIFAR10
+  data_dir: ${paths.data_dir}
+  download: true
+  transform:
+    train:
+    - _target_: torchvision.transforms.RandomCrop
+      size: 32
+      padding: 4
+    - _target_: torchvision.transforms.RandomHorizontalFlip
+      p: 0.5
+    - _target_: torchvision.transforms.ToTensor
+    - _target_: torchvision.transforms.Normalize
+      mean:
+      - 0.4914
+      - 0.4822
+      - 0.4465
+      std:
+      - 0.2023
+      - 0.1994
+      - 0.201
+    val:
+    - _target_: torchvision.transforms.ToTensor
+    - _target_: torchvision.transforms.Normalize
+      mean:
+      - 0.4914
+      - 0.4822
+      - 0.4465
+      std:
+      - 0.2023
+      - 0.1994
+      - 0.201
+  batch_size: 32
+  num_workers: 4
+  pin_memory: true
+  shuffle_train: true
+  train_split: 0.8
+  val_split: 0.1
+  test_split: 0.1
+model:
+  _target_: src.models.simple_cnn.SimpleCNN
+  input_channels: 3
+  num_classes: 10
+  dropout_rate: 0.2
+  conv_layers:
+  - out_channels: 32
+    kernel_size: 3
+    padding: 1
+  - out_channels: 64
+    kernel_size: 3
+    padding: 1
+  - out_channels: 128
+    kernel_size: 3
+    padding: 1
+  pool_size: 2
+  pool_type: max
+  dense_layers:
+  - 512
+  - 256
+training:
+  epochs: 1
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  momentum: 0.9
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: ${training.learning_rate}
+    weight_decay: ${training.weight_decay}
+  scheduler:
+    _target_: torch.optim.lr_scheduler.StepLR
+    step_size: 5
+    gamma: 0.1
+  loss_function:
+    _target_: torch.nn.CrossEntropyLoss
+  early_stopping:
+    enabled: true
+    patience: 3
+    min_delta: 0.001
+    monitor: val_loss
+    mode: min
+  checkpointing:
+    enabled: true
+    save_top_k: 3
+    monitor: val_accuracy
+    mode: max
+    save_last: true
+  val_check_interval: 1.0
+  log_every_n_steps: 50
+mlflow:
+  experiment_name: e2e-ml-cifar10
+  run_name: simple-cnn-run
+  tracking_uri: file:${paths.mlruns_dir}
+  log_artifacts: true
+  log_models: true
+  log_metrics: true
+  log_params: true
+  model_registry:
+    enabled: true
+    model_name: cifar10-classifier
+    stage: None
+  artifacts:
+    models_dir: ${paths.model_dir}
+    plots_dir: ${paths.output_dir}/plots
+    logs_dir: ${paths.log_dir}
+  metrics:
+  - train_loss
+  - val_loss
+  - train_accuracy
+  - val_accuracy
+  - learning_rate
+  - epoch
+  params:
+  - model.input_channels
+  - model.num_classes
+  - model.dropout_rate
+  - training.epochs
+  - training.learning_rate
+  - training.weight_decay
+  - data.batch_size
+app_name: e2e-ml-workflow
+mode: train
+paths:
+  data_dir: ./data
+  model_dir: ./output/models
+  log_dir: ./output/logs
+  output_dir: ./output
+  mlruns_dir: ./output/mlruns
+log_level: INFO
+log_file: ${paths.log_dir}/mlflow.log

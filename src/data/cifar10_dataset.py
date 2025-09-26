@@ -11,8 +11,16 @@ from torchvision import datasets, transforms
 
 # =============================== Constants ================================== #
 CIFAR10_CLASSES = [
-    "airplane", "automobile", "bird", "cat", "deer",
-    "dog", "frog", "horse", "ship", "truck"
+    "airplane",
+    "automobile",
+    "bird",
+    "cat",
+    "deer",
+    "dog",
+    "frog",
+    "horse",
+    "ship",
+    "truck",
 ]
 
 
@@ -31,7 +39,7 @@ class CIFAR10DataModule:
         transform: Optional[Dict[str, Any]] = None,
         batch_size: int = 128,
         num_workers: int = 4,
-        pin_memory: bool = True,
+        pin_memory: bool = False,
         shuffle_train: bool = True,
         train_split: float = 0.8,
         val_split: float = 0.1,
@@ -82,7 +90,9 @@ class CIFAR10DataModule:
 
         logger.info(f"Initialized {dataset_name} data module")
 
-    def _create_transforms(self, transform_config: Optional[Dict[str, Any]]) -> Dict[str, transforms.Compose]:
+    def _create_transforms(
+        self, transform_config: Optional[Dict[str, Any]]
+    ) -> Dict[str, transforms.Compose]:
         """Create transform compositions from configuration.
 
         Args:
@@ -96,16 +106,20 @@ class CIFAR10DataModule:
             transform_config = {
                 "train": [
                     {"_target_": "torchvision.transforms.ToTensor"},
-                    {"_target_": "torchvision.transforms.Normalize",
-                     "mean": [0.4914, 0.4822, 0.4465],
-                     "std": [0.2023, 0.1994, 0.2010]}
+                    {
+                        "_target_": "torchvision.transforms.Normalize",
+                        "mean": [0.4914, 0.4822, 0.4465],
+                        "std": [0.2023, 0.1994, 0.2010],
+                    },
                 ],
                 "val": [
                     {"_target_": "torchvision.transforms.ToTensor"},
-                    {"_target_": "torchvision.transforms.Normalize",
-                     "mean": [0.4914, 0.4822, 0.4465],
-                     "std": [0.2023, 0.1994, 0.2010]}
-                ]
+                    {
+                        "_target_": "torchvision.transforms.Normalize",
+                        "mean": [0.4914, 0.4822, 0.4465],
+                        "std": [0.2023, 0.1994, 0.2010],
+                    },
+                ],
             }
 
         transforms_dict = {}
@@ -116,7 +130,9 @@ class CIFAR10DataModule:
                     # * Extract the target class and parameters
                     target = transform_spec["_target_"]
                     # * Create a copy without the _target_ key
-                    params = {k: v for k, v in transform_spec.items() if k != "_target_"}
+                    params = {
+                        k: v for k, v in transform_spec.items() if k != "_target_"
+                    }
                     transform_class = self._get_transform_class(target)
                     transform_list.append(transform_class(**params))
 
@@ -155,7 +171,7 @@ class CIFAR10DataModule:
             root=str(self.data_dir),
             train=True,
             download=self.download,
-            transform=transforms.ToTensor()  # * Use basic transform for download
+            transform=transforms.ToTensor(),  # * Use basic transform for download
         )
 
         # * Download test data
@@ -163,7 +179,7 @@ class CIFAR10DataModule:
             root=str(self.data_dir),
             train=False,
             download=self.download,
-            transform=transforms.ToTensor()  # * Use basic transform for download
+            transform=transforms.ToTensor(),  # * Use basic transform for download
         )
 
         logger.info(f"Dataset prepared in {self.data_dir}")
@@ -177,7 +193,7 @@ class CIFAR10DataModule:
             root=str(self.data_dir),
             train=True,
             download=False,
-            transform=self.transform["train"]
+            transform=self.transform["train"],
         )
 
         # * Load test dataset
@@ -185,7 +201,7 @@ class CIFAR10DataModule:
             root=str(self.data_dir),
             train=False,
             download=False,
-            transform=self.transform["val"]  # * Use val transforms for test
+            transform=self.transform["val"],  # * Use val transforms for test
         )
 
         # * Calculate split sizes
@@ -200,7 +216,7 @@ class CIFAR10DataModule:
         self.train_dataset, self.val_dataset = random_split(
             full_train_dataset,
             [train_size, val_size],
-            generator=torch.Generator().manual_seed(42)  # * For reproducibility
+            generator=torch.Generator().manual_seed(42),  # * For reproducibility
         )
 
         logger.info(

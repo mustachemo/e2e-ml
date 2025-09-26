@@ -7,7 +7,7 @@ machine learning pipeline including data loading, model training, and evaluation
 
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import hydra
 import torch
@@ -25,7 +25,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 # =============================== Utilities ================================= #
-def create_summary_table(config: DictConfig, metrics: Dict[str, Any]) -> Table:
+def create_summary_table(config: DictConfig, metrics: dict[str, Any]) -> Table:
     """Create a summary table for display.
 
     Args:
@@ -60,7 +60,7 @@ def create_summary_table(config: DictConfig, metrics: Dict[str, Any]) -> Table:
     return table
 
 
-def train_pipeline(config: DictConfig) -> Dict[str, Any]:
+def train_pipeline(config: DictConfig) -> dict[str, Any]:
     """Execute the training pipeline.
 
     Args:
@@ -154,7 +154,7 @@ def train_pipeline(config: DictConfig) -> Dict[str, Any]:
         return results
 
 
-def eval_pipeline(config: DictConfig) -> Dict[str, Any]:
+def eval_pipeline(config: DictConfig) -> dict[str, Any]:
     """Execute the evaluation pipeline.
 
     Args:
@@ -240,15 +240,24 @@ def main(config: DictConfig) -> None:
         format="<green>{time:HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
     )
 
-    # * Create consolidated output directory structure
-    output_dir = Path(config.paths.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    # * Create timestamped output directory structure
+    from datetime import datetime
+
+    timestamp = datetime.now().strftime("%Y-%m-%d/%H-%M-%S")
+    timestamped_output_dir = Path(config.paths.output_dir) / timestamp
+    timestamped_output_dir.mkdir(parents=True, exist_ok=True)
+
+    # * Update paths to use timestamped directory
+    config.paths.model_dir = str(timestamped_output_dir / "models")
+    config.paths.log_dir = str(timestamped_output_dir / "logs")
+    config.paths.mlruns_dir = str(timestamped_output_dir / "mlruns")
+    config.paths.output_dir = str(timestamped_output_dir)
 
     # * Create subdirectories
-    (output_dir / "models").mkdir(exist_ok=True)
-    (output_dir / "logs").mkdir(exist_ok=True)
-    (output_dir / "mlruns").mkdir(exist_ok=True)
-    (output_dir / "plots").mkdir(exist_ok=True)
+    (config.paths.output_dir / "models").mkdir(exist_ok=True)
+    (config.paths.output_dir / "logs").mkdir(exist_ok=True)
+    (config.paths.output_dir / "mlruns").mkdir(exist_ok=True)
+    (config.paths.output_dir / "plots").mkdir(exist_ok=True)
 
     # * Set up MLflow
     setup_mlflow_logging(config.mlflow)
@@ -288,6 +297,7 @@ def main(config: DictConfig) -> None:
             console.print(
                 f"[bold green]📁 All outputs consolidated in: {config.paths.output_dir}[/bold green]"
             )
+            console.print(f"[bold green]📁 Timestamped run: {timestamp}[/bold green]")
 
         logger.info("Pipeline completed successfully")
 
