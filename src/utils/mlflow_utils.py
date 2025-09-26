@@ -35,7 +35,9 @@ class MLflowManager:
         # * Create or get experiment
         self.experiment_id = self._setup_experiment()
 
-        logger.info(f"Initialized MLflow manager for experiment: {self.experiment_name}")
+        logger.info(
+            f"Initialized MLflow manager for experiment: {self.experiment_name}"
+        )
 
     def _setup_experiment(self) -> str:
         """Set up MLflow experiment.
@@ -89,7 +91,9 @@ class MLflowManager:
         except Exception as e:
             logger.error(f"Failed to log parameters: {e}")
 
-    def log_metrics(self, metrics: Dict[str, float], step: Optional[int] = None) -> None:
+    def log_metrics(
+        self, metrics: Dict[str, float], step: Optional[int] = None
+    ) -> None:
         """Log metrics to MLflow.
 
         Args:
@@ -128,7 +132,7 @@ class MLflowManager:
         try:
             # * Create input example for model signature inference (convert to numpy)
             input_example = torch.randn(1, 3, 32, 32).numpy()  # * CIFAR-10 input shape
-            
+
             # * Log model as artifact
             mlflow.pytorch.log_model(
                 pytorch_model=model,
@@ -140,7 +144,9 @@ class MLflowManager:
         except Exception as e:
             logger.error(f"Failed to log model: {e}")
 
-    def log_artifacts(self, artifacts_dir: str, artifact_path: Optional[str] = None) -> None:
+    def log_artifacts(
+        self, artifacts_dir: str, artifact_path: Optional[str] = None
+    ) -> None:
         """Log directory of artifacts to MLflow.
 
         Args:
@@ -201,12 +207,64 @@ class MLflowManager:
         try:
             # * Convert config to YAML string
             from omegaconf import OmegaConf
+
             config_yaml = OmegaConf.to_yaml(config)
 
             mlflow.log_text(config_yaml, config_name)
             logger.info(f"Logged configuration '{config_name}' to MLflow")
         except Exception as e:
             logger.error(f"Failed to log configuration: {e}")
+
+    def log_hydra_configs(self, hydra_cfg: DictConfig) -> None:
+        """Log all Hydra configuration files to MLflow.
+
+        Args:
+            hydra_cfg: Hydra configuration object containing hydra info.
+        """
+        if not self.cfg.log_artifacts:
+            return
+
+        try:
+            from omegaconf import OmegaConf
+
+            # * Log main config.yaml
+            config_path = Path("configs/config.yaml")
+            if config_path.exists():
+                with open(config_path, "r") as f:
+                    mlflow.log_text(f.read(), "configs/config.yaml")
+                logger.info("Logged configs/config.yaml to MLflow")
+
+            # * Log hydra.yaml
+            hydra_path = Path("configs/hydra.yaml")
+            if hydra_path.exists():
+                with open(hydra_path, "r") as f:
+                    mlflow.log_text(f.read(), "configs/hydra.yaml")
+                logger.info("Logged configs/hydra.yaml to MLflow")
+
+            # * Log overrides.yaml if it exists
+            overrides_path = Path("configs/overrides.yaml")
+            if overrides_path.exists():
+                with open(overrides_path, "r") as f:
+                    mlflow.log_text(f.read(), "configs/overrides.yaml")
+                logger.info("Logged configs/overrides.yaml to MLflow")
+
+            # * Log individual config files
+            config_files = [
+                "configs/data/cifar10.yaml",
+                "configs/model/simple_cnn.yaml",
+                "configs/training/default.yaml",
+                "configs/mlflow/local.yaml",
+            ]
+
+            for config_file in config_files:
+                config_path = Path(config_file)
+                if config_path.exists():
+                    with open(config_path, "r") as f:
+                        mlflow.log_text(f.read(), f"configs/{config_path.name}")
+                    logger.info(f"Logged configs/{config_path.name} to MLflow")
+
+        except Exception as e:
+            logger.error(f"Failed to log Hydra configurations: {e}")
 
     def register_model(
         self,
@@ -248,9 +306,13 @@ class MLflowManager:
                     version=registered_model.version,
                     stage=stage,
                 )
-                logger.info(f"Registered model '{model_name}' version {registered_model.version} in stage '{stage}'")
+                logger.info(
+                    f"Registered model '{model_name}' version {registered_model.version} in stage '{stage}'"
+                )
             else:
-                logger.info(f"Registered model '{model_name}' version {registered_model.version}")
+                logger.info(
+                    f"Registered model '{model_name}' version {registered_model.version}"
+                )
 
         except Exception as e:
             logger.error(f"Failed to register model: {e}")

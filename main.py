@@ -79,6 +79,9 @@ def train_pipeline(config: DictConfig) -> Dict[str, Any]:
         # * Log configuration
         mlflow_manager.log_config(config)
 
+        # * Log Hydra configurations
+        mlflow_manager.log_hydra_configs(config)
+
         # * Create data module
         data_module = create_data_module(config.data)
         data_module.prepare_data()
@@ -237,6 +240,16 @@ def main(config: DictConfig) -> None:
         format="<green>{time:HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
     )
 
+    # * Create consolidated output directory structure
+    output_dir = Path(config.paths.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # * Create subdirectories
+    (output_dir / "models").mkdir(exist_ok=True)
+    (output_dir / "logs").mkdir(exist_ok=True)
+    (output_dir / "mlruns").mkdir(exist_ok=True)
+    (output_dir / "plots").mkdir(exist_ok=True)
+
     # * Set up MLflow
     setup_mlflow_logging(config.mlflow)
 
@@ -271,6 +284,10 @@ def main(config: DictConfig) -> None:
             console.print("[bold blue]🔍 To view MLflow UI, run:[/bold blue]")
             console.print(f"   [cyan]mlflow ui --backend-store-uri {mlflow_uri}[/cyan]")
             console.print("   [cyan]Then open: http://localhost:5000[/cyan]")
+            console.print()
+            console.print(
+                f"[bold green]📁 All outputs consolidated in: {config.paths.output_dir}[/bold green]"
+            )
 
         logger.info("Pipeline completed successfully")
 

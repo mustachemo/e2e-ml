@@ -2,8 +2,8 @@
 
 # =============================== MLflow Configuration ===================== #
 experiment_name: "e2e-ml-cifar10"
-run_name: "run_{now:%Y%m%d_%H%M%S}"
-tracking_uri: "file:./mlruns"
+run_name: "simple-cnn-run"
+tracking_uri: "file:${paths.mlruns_dir}"
 
 # =============================== Logging ================================== #
 log_artifacts: true
