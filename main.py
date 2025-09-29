@@ -265,7 +265,8 @@ def main(config: DictConfig) -> None:
     # ! mlruns_dir stays at the shared location from config
     config.paths.model_dir = str(timestamped_output_dir / "models")
     config.paths.log_dir = str(timestamped_output_dir / "logs")
-    config.paths.run_output_dir = str(timestamped_output_dir)
+    # * Store run output dir for display (not in config struct)
+    run_output_dir = str(timestamped_output_dir)
 
     # * Create subdirectories for run-specific artifacts
     (timestamped_output_dir / "models").mkdir(exist_ok=True)
@@ -327,9 +328,7 @@ def main(config: DictConfig) -> None:
         # * Display output locations and MLflow UI instructions
         mlflow_uri = config.mlflow.tracking_uri
         console.print()
-        console.print(
-            f"[bold green]📁 Run artifacts: {config.paths.run_output_dir}[/bold green]"
-        )
+        console.print(f"[bold green]📁 Run artifacts: {run_output_dir}[/bold green]")
         console.print(
             f"[bold green]📊 MLflow tracking: {config.paths.mlruns_dir}[/bold green]"
         )
