@@ -1,0 +1,21 @@
+FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn9-devel
+
+# * Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# * Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY pyproject.toml .
+
+# * Install base dependencies only (PyTorch + torchvision already provided by CUDA base image)
+RUN pip install .
+

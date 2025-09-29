@@ -7,12 +7,22 @@ services:
   ml-pipeline:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.gpu.amd
+    devices:
+      - /dev/kfd
+      - /dev/dri
+    security_opt:
+      - seccomp=unconfined
+
+    group_add:
+      - "44" # video group - for /dev/dri/card* access
+      - "992" # render group - for /dev/kfd and /dev/dri/renderD* access
+    ipc: host
+    shm_size: 8G
+
     container_name: e2e-ml-pipeline
     volumes:
-      - ./output-clean:/app/output
-      - ./data:/app/data
-      - ./configs:/app/configs
+      - .:/app
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow-ui:5000
     depends_on:
@@ -20,8 +30,8 @@ services:
     networks:
       - ml-network
     command:
-      ["python", "main.py", "mode=train", "data.batch_size=32", "mlflow=docker"]
-
+      #   ["python", "main.py", "mode=train", "data.batch_size=32", "mlflow=docker"]
+      ["bash", "-lc", "sleep infinity"]
   # =============================== MLflow UI ================================ #
   mlflow-ui:
     build:
@@ -31,7 +41,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./output-clean/mlruns:/app/mlruns
+      - ./output:/app/mlruns
     environment:
       - MLFLOW_BACKEND_STORE_URI=file:/app/mlruns
     networks:

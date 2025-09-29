@@ -9,14 +9,13 @@ packages = ["src"]
 name = "e2e-ml"
 version = "0.1.0"
 description = "End-to-end ML workflow with PyTorch, MLflow, and Hydra"
-authors = [
-    {name = "ML Team", email = "team@example.com"},
-]
+authors = [{ name = "ML Team", email = "team@example.com" }]
 # readme = "README-Docker.md"  # Commented out for Docker build
 requires-python = ">=3.9"
 dependencies = [
-    "torch>=2.0.0",
-    "torchvision>=0.15.0",
+    # * Note: torch/torchvision are NOT included in base dependencies
+    # * They are provided by the ROCm/CUDA Docker base images OR
+    # * installed via optional dependencies (e.g., [cpu]) for CPU-only builds
     "numpy>=1.24.0",
     "pandas>=2.0.0",
     "scikit-learn>=1.3.0",
@@ -42,6 +41,7 @@ dev = [
     "mypy>=1.5.0",
     "pre-commit>=3.3.0",
 ]
+cpu = ["torch>=2.0.0", "torchvision>=0.15.0"]
 
 [tool.uv]
 dev-dependencies = [
@@ -68,9 +68,9 @@ select = [
     "UP", # pyupgrade
 ]
 ignore = [
-    "E501",  # line too long, handled by black
-    "B008",  # do not perform function calls in argument defaults
-    "C901",  # too complex
+    "E501", # line too long, handled by black
+    "B008", # do not perform function calls in argument defaults
+    "C901", # too complex
 ]
 
 [tool.ruff.per-file-ignores]

@@ -1,0 +1,28 @@
+FROM rocm/pytorch:rocm6.4.4_ubuntu24.04_py3.12_pytorch_release_2.7.1
+
+# * Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# * ROCm environment variables for gfx1151 (Strix Halo) compatibility workaround
+# ! gfx1151 is too new - force ROCm to use gfx1100 (RDNA 3) kernels as fallback
+ENV HSA_OVERRIDE_GFX_VERSION=11.0.0 \
+    PYTORCH_ROCM_ARCH=gfx1100 \
+    MIOPEN_FIND_MODE=NORMAL \
+    MIOPEN_DEBUG_DISABLE_FIND_DB=0 \
+    MIOPEN_DISABLE_CACHE=0
+
+# * Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY pyproject.toml .
+
+# * Install base dependencies only (PyTorch + torchvision already provided by ROCm base image)
+RUN pip install .

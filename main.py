@@ -22,6 +22,9 @@ from src.models import create_model, create_trainer
 from src.utils import MLflowManager, setup_mlflow_logging
 
 # =============================== Constants ================================== #
+# ! AMD Ryzen AI Max+ 395 (gfx1151) has MIOpen BatchNorm compilation issues
+# ! Force CPU until official ROCm support is available or workaround is confirmed
+# DEVICE = "cpu"  # Set to "cuda" to test GPU (may crash on BatchNorm operations)
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
@@ -270,6 +273,24 @@ def main(config: DictConfig) -> None:
 
     # * Create console for output
     console = Console()
+
+    # * Log device information
+    logger.info(f"PyTorch CUDA available: {torch.cuda.is_available()}")
+    if torch.cuda.is_available():
+        logger.info(f"GPU device count: {torch.cuda.device_count()}")
+        logger.info(f"GPU device name: {torch.cuda.get_device_name(0)}")
+        logger.info(f"GPU compute capability: {torch.cuda.get_device_capability(0)}")
+
+        # * Log ROCm-specific information for AMD GPUs
+        if hasattr(torch.version, "hip") and torch.version.hip:
+            logger.info(f"ROCm HIP version: {torch.version.hip}")
+            # ? Try to get GFX architecture from environment or device properties
+            gfx_arch = os.getenv("HSA_OVERRIDE_GFX_VERSION", "native")
+            logger.info(f"HSA_OVERRIDE_GFX_VERSION: {gfx_arch}")
+
+        logger.info(f"Training device: {DEVICE} (GPU)")
+    else:
+        logger.info(f"Training device: {DEVICE} (CPU)")
 
     logger.info(f"Starting {config.app_name} in {config.mode} mode...")
     logger.debug(f"Configuration:\n{OmegaConf.to_yaml(config)}")
