@@ -1,3 +1,0 @@
-- mode=train
-- training.epochs=1
-- data.batch_size=32
