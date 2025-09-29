@@ -100,7 +100,12 @@ def train_pipeline(config: DictConfig) -> dict[str, Any]:
             "model_pool_type": config.model.pool_type,
         })
 
-        # * Create trainer
+        # * Create trainer with model directory
+        # ! Temporarily disable struct mode to add model_dir
+        OmegaConf.set_struct(config.training, False)
+        config.training.model_dir = config.paths.model_dir
+        OmegaConf.set_struct(config.training, True)
+
         trainer = create_trainer(
             model=model,
             train_loader=data_module.train_dataloader(),
@@ -194,7 +199,12 @@ def eval_pipeline(config: DictConfig) -> dict[str, Any]:
             logger.warning(f"Best model checkpoint not found at {best_model_path}")
             return {"error": "Best model checkpoint not found"}
 
-        # * Create trainer for evaluation
+        # * Create trainer for evaluation with model directory
+        # ! Temporarily disable struct mode to add model_dir
+        OmegaConf.set_struct(config.training, False)
+        config.training.model_dir = config.paths.model_dir
+        OmegaConf.set_struct(config.training, True)
+
         trainer = create_trainer(
             model=model,
             train_loader=data_module.train_dataloader(),
@@ -251,17 +261,19 @@ def main(config: DictConfig) -> None:
     timestamped_output_dir = Path(config.paths.output_dir) / timestamp
     timestamped_output_dir.mkdir(parents=True, exist_ok=True)
 
-    # * Update paths to use timestamped directory
+    # * Update paths to use timestamped directory for run-specific artifacts
+    # ! mlruns_dir stays at the shared location from config
     config.paths.model_dir = str(timestamped_output_dir / "models")
     config.paths.log_dir = str(timestamped_output_dir / "logs")
-    config.paths.mlruns_dir = str(timestamped_output_dir / "mlruns")
-    config.paths.output_dir = str(timestamped_output_dir)
+    config.paths.run_output_dir = str(timestamped_output_dir)
 
-    # * Create subdirectories
+    # * Create subdirectories for run-specific artifacts
     (timestamped_output_dir / "models").mkdir(exist_ok=True)
     (timestamped_output_dir / "logs").mkdir(exist_ok=True)
-    (timestamped_output_dir / "mlruns").mkdir(exist_ok=True)
     (timestamped_output_dir / "plots").mkdir(exist_ok=True)
+
+    # * Ensure shared mlruns directory exists (for all runs to use)
+    Path(config.paths.mlruns_dir).mkdir(parents=True, exist_ok=True)
 
     # * Set up MLflow
     setup_mlflow_logging(config.mlflow)
@@ -312,19 +324,25 @@ def main(config: DictConfig) -> None:
         summary_table = create_summary_table(config, results)
         console.print(summary_table)
 
-        # * Display MLflow UI instructions
+        # * Display output locations and MLflow UI instructions
         mlflow_uri = config.mlflow.tracking_uri
+        console.print()
+        console.print(
+            f"[bold green]📁 Run artifacts: {config.paths.run_output_dir}[/bold green]"
+        )
+        console.print(
+            f"[bold green]📊 MLflow tracking: {config.paths.mlruns_dir}[/bold green]"
+        )
+
         if mlflow_uri.startswith("file:"):
-            mlflow_path = mlflow_uri.replace("file:", "")
             console.print()
             console.print("[bold blue]🔍 To view MLflow UI, run:[/bold blue]")
             console.print(f"   [cyan]mlflow ui --backend-store-uri {mlflow_uri}[/cyan]")
             console.print("   [cyan]Then open: http://localhost:5000[/cyan]")
+        else:
             console.print()
-            console.print(
-                f"[bold green]📁 All outputs consolidated in: {config.paths.output_dir}[/bold green]"
-            )
-            console.print(f"[bold green]📁 Timestamped run: {timestamp}[/bold green]")
+            console.print("[bold blue]🔍 MLflow UI available at:[/bold blue]")
+            console.print("   [cyan]http://localhost:5000[/cyan]")
 
         logger.info("Pipeline completed successfully")
 
